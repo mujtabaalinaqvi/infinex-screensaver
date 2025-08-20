@@ -1,109 +1,103 @@
-"use client";
-import { useEffect, useRef, useState } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Infinex Screensaver</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      background: black;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+    }
+    #logo {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+    }
+    #cat {
+      position: absolute;
+      width: 200px;
+      height: auto;
+      display: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <img id="logo" src="infinex-logo.png" alt="Infinex Logo" />
+  <img id="cat" src="cat.png" alt="Cat" />
+  
+  <audio id="meow1" src="https://upload.wikimedia.org/wikipedia/commons/5/55/Cat_Meowing_2.ogg"></audio>
+  <audio id="meow2" src="https://upload.wikimedia.org/wikipedia/commons/3/32/Cat_meow.ogg"></audio>
+  <audio id="meow3" src="https://upload.wikimedia.org/wikipedia/commons/7/70/Cat_meowing.ogg"></audio>
 
-export default function Screensaver() {
-  const logoRef = useRef(null);
-  const catRef = useRef(null);
-  const [catVisible, setCatVisible] = useState(false);
-  const [catPosition, setCatPosition] = useState("top-left");
-  const audioRefs = useRef([]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const screensaver = document.getElementById("screensaver");
-    const logo = logoRef.current;
-    const cat = catRef.current;
-
-    let x = 100;
-    let y = 100;
-    let dx = 2;
-    let dy = 2;
-    const speed = 2;
-    const logoSize = 80;
-
+  <script>
+    const logo = document.getElementById("logo");
+    const cat = document.getElementById("cat");
     const sounds = [
-      "/meow1.mp3",
-      "/meow2.mp3",
-      "/meow3.mp3",
+      document.getElementById("meow1"),
+      document.getElementById("meow2"),
+      document.getElementById("meow3")
     ];
-    audioRefs.current = sounds.map((src) => {
-      const audio = new Audio(src);
-      audio.volume = 0.5;
-      return audio;
-    });
 
-    function randomMeow() {
-      const rand = Math.floor(Math.random() * audioRefs.current.length);
-      audioRefs.current[rand].play();
+    let x = 100, y = 100;
+    let dx = 2, dy = 2;
+    const speed = 2;
+    const logoSize = 120;
+    const catSize = 200;
+
+    function playRandomMeow() {
+      const s = sounds[Math.floor(Math.random() * sounds.length)];
+      s.currentTime = 0;
+      s.play();
     }
 
-    function showCat(position) {
-      setCatPosition(position);
-      setCatVisible(true);
-      randomMeow();
+    function showCat(edge) {
+      cat.style.display = "block";
+      if (edge === "tl") {
+        cat.style.left = "0px";
+        cat.style.top = "0px";
+      } else if (edge === "tr") {
+        cat.style.left = window.innerWidth - catSize + "px";
+        cat.style.top = "0px";
+      } else if (edge === "bl") {
+        cat.style.left = "0px";
+        cat.style.top = window.innerHeight - catSize + "px";
+      } else if (edge === "br") {
+        cat.style.left = window.innerWidth - catSize + "px";
+        cat.style.top = window.innerHeight - catSize + "px";
+      }
+      playRandomMeow();
       setTimeout(() => {
-        setCatVisible(false);
-      }, 1500);
+        cat.style.display = "none";
+      }, 1000);
     }
 
     function animate() {
-      if (!screensaver || !logo) return;
-      const sw = screensaver.clientWidth;
-      const sh = screensaver.clientHeight;
+      x += dx;
+      y += dy;
 
-      x += dx * speed;
-      y += dy * speed;
-
-      if (x + logoSize >= sw) {
-        dx = -1;
-        showCat("right");
-      } else if (x <= 0) {
-        dx = 1;
-        showCat("left");
+      if (x <= 0 || x + logoSize >= window.innerWidth) {
+        dx = -dx;
+        const edge = y <= 0 ? (x <= 0 ? "tl" : "tr") : (y + logoSize >= window.innerHeight ? (x <= 0 ? "bl" : "br") : null);
+        if (edge) showCat(edge);
+      }
+      if (y <= 0 || y + logoSize >= window.innerHeight) {
+        dy = -dy;
+        const edge = x <= 0 ? (y <= 0 ? "tl" : "bl") : (x + logoSize >= window.innerWidth ? (y <= 0 ? "tr" : "br") : null);
+        if (edge) showCat(edge);
       }
 
-      if (y + logoSize >= sh) {
-        dy = -1;
-        showCat("bottom");
-      } else if (y <= 0) {
-        dy = 1;
-        showCat("top");
-      }
+      logo.style.left = x + "px";
+      logo.style.top = y + "px";
 
-      logo.style.transform = `translate(${x}px, ${y}px)`;
       requestAnimationFrame(animate);
     }
 
     animate();
-  }, []);
-
-  return (
-    <div
-      id="screensaver"
-      className="w-screen h-screen bg-black overflow-hidden relative"
-    >
-      {/* Moving Logo */}
-      <img
-        ref={logoRef}
-        src="/logo.png"
-        alt="logo"
-        className="absolute w-20 h-20"
-      />
-
-      {/* Cat Pop Animation */}
-      {catVisible && (
-        <img
-          ref={catRef}
-          src="/cat.png"
-          alt="cat"
-          className={`absolute w-40 h-40 transition-all duration-500 ${
-            catPosition === "top" ? "top-0 left-1/2 -translate-x-1/2" : ""
-          } ${catPosition === "bottom" ? "bottom-0 left-1/2 -translate-x-1/2" : ""}
-          ${catPosition === "left" ? "left-0 top-1/2 -translate-y-1/2" : ""}
-          ${catPosition === "right" ? "right-0 top-1/2 -translate-y-1/2" : ""}`}
-        />
-      )}
-    </div>
-  );
-}
+  </script>
+</body>
+</html>
