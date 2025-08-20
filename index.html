@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Infinex Cat Screensaver</title>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  #logo {
+    position: absolute;
+    width: 150px;
+  }
+
+  .cat {
+    position: absolute;
+    width: 200px;
+    transition: transform 0.7s ease, opacity 0.7s ease;
+    opacity: 0;
+  }
+
+  /* Starting hidden (off-screen) */
+  #cat-tl { top: 0; left: 0; transform: translate(-120%, -120%); }
+  #cat-tr { top: 0; right: 0; transform: translate(120%, -120%); }
+  #cat-bl { bottom: 0; left: 0; transform: translate(-120%, 120%); }
+  #cat-br { bottom: 0; right: 0; transform: translate(120%, 120%); }
+
+  /* When shown, slide into corner */
+  .show {
+    transform: translate(0,0) !important;
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+  <!-- Infinex logo -->
+  <img id="logo" src="infinex-logo.png" alt="Infinex Logo">
+
+  <!-- Cats in corners -->
+  <img id="cat-tl" class="cat" src="cat.png" alt="Cat TL">
+  <img id="cat-tr" class="cat" src="cat.png" alt="Cat TR">
+  <img id="cat-bl" class="cat" src="cat.png" alt="Cat BL">
+  <img id="cat-br" class="cat" src="cat.png" alt="Cat BR">
+
+  <!-- Multiple meow sounds -->
+  <audio id="meow1" src="meow1.mp3" preload="auto"></audio>
+  <audio id="meow2" src="meow2.mp3" preload="auto"></audio>
+  <audio id="meow3" src="meow3.mp3" preload="auto"></audio>
+  <audio id="meow4" src="meow4.mp3" preload="auto"></audio>
+
+<script>
+const logo = document.getElementById("logo");
+const cats = {
+  tl: document.getElementById("cat-tl"),
+  tr: document.getElementById("cat-tr"),
+  bl: document.getElementById("cat-bl"),
+  br: document.getElementById("cat-br")
+};
+
+// Pool of meows
+const meows = [
+  document.getElementById("meow1"),
+  document.getElementById("meow2"),
+  document.getElementById("meow3"),
+  document.getElementById("meow4")
+];
+
+let x = 200, y = 200;
+let dx = 2, dy = 2;
+
+// Bounce animation
+function animate() {
+  const w = window.innerWidth - logo.clientWidth;
+  const h = window.innerHeight - logo.clientHeight;
+
+  x += dx;
+  y += dy;
+
+  if (x <= 0 || x >= w) dx *= -1;
+  if (y <= 0 || y >= h) dy *= -1;
+
+  logo.style.left = x + "px";
+  logo.style.top = y + "px";
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Easter egg: cat pushes logo every 15s
+setInterval(() => {
+  const corners = ["tl","tr","bl","br"];
+  const pick = corners[Math.floor(Math.random()*4)];
+
+  // Steer logo toward that corner
+  dx = (pick.includes("r") ? 2 : -2);
+  dy = (pick.includes("b") ? 2 : -2);
+
+  // After ~2 seconds, cat appears
+  setTimeout(()=> {
+    const cat = cats[pick];
+    cat.classList.add("show");
+
+    // Pick random meow
+    const meow = meows[Math.floor(Math.random()*meows.length)];
+    meow.currentTime = 0;
+    meow.play();
+
+    // Push logo back
+    dx *= -1;
+    dy *= -1;
+
+    // Hide cat after 1s
+    setTimeout(()=> cat.classList.remove("show"), 1000);
+  }, 2000);
+}, 15000);
+</script>
+</body>
+</html>
